@@ -63,27 +63,27 @@ app.get("/authorize", async (req, res) => {
   res.json({});
 });
 
-// app.post("/token", (req, res) => {
 
-
-// });
 app.post("/token", async (req, res) => {
   const clientId = req.body.client_id;
   const clientSecret = req.body.client_secret;
   const client = await ClientModel.findOne({ clientId, clientSecret }).exec();
   if (!client) {
-    res.status(401).json({ error: 'Unauthorized', error_description: 'Invalid client credentials' });
-    return;
+    res.json(buildResponse(false, 'Invalid client credentials')); return;
+
   }
 
-  if (req.body.grant_type !== 'client_credentials') {
-    res.status(400).json({ error: 'unsupported_grant_type', error_description: 'Unsupported grant type' });
-    return;
+  if (req.body.grant_type !== 'Authorization_code') {
+    res.json(buildResponse(false, 'Unsupported grant type ')); return;
+
   }
+
 
   const token = jwt.sign({ client_id: clientId }, 'your_secret_key', { expiresIn: '1h' });
-  res.json({ access_token: token, token_type: 'Bearer', expires_in: 3600 });
+  res.json(buildResponse(true, "Credentials Generated", { access_token: token, token_type: 'Bearer', expires_in: 3600 }));
+
 });
+
 app.listen(3200, () => {
   console.log("OIDC Server start on port 3200..");
 });
